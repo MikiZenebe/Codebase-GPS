@@ -25,11 +25,9 @@ export default function ProjectsPage() {
           </p>
         </div>
 
-        <Button asChild>
-          <Link to="/projects/new">
-            <Plus size={16} />
-            New project
-          </Link>
+        <Button render={<Link to="/projects/new" />}>
+          <Plus size={16} />
+          New project
         </Button>
       </div>
 
@@ -44,8 +42,8 @@ export default function ProjectsPage() {
               Upload a repository or connect GitHub to get started.
             </p>
 
-            <Button asChild className="mt-5">
-              <Link to="/projects/new">Add your first project</Link>
+            <Button render={<Link to="/projects/new" />} className="mt-5">
+              Add your first project
             </Button>
           </CardContent>
         </Card>

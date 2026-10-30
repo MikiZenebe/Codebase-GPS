@@ -3,6 +3,12 @@ import { AppLayout } from "../components/layout/AppLayout";
 import DashboardPage from "../pages/DashboardPage";
 import ProjectsPage from "../pages/ProjectsPage";
 import NewProjectPage from "../pages/NewProjectPage";
+import CodeGraphPage from "../pages/CodeGraphPage";
+import ProjectDetailsPage from "../pages/ProjectDetailsPage";
+import CodeSearchPage from "../pages/CodeSearchPage";
+import FlowsPage from "../pages/FlowsPage";
+import SettingsPage from "../pages/SettingsPage";
+import NotFoundPage from "../pages/NotFoundPage";
 
 export const router = createBrowserRouter([
   {
@@ -21,30 +27,30 @@ export const router = createBrowserRouter([
         path: "projects/new",
         element: <NewProjectPage />,
       },
-      //   {
-      //     path: "projects/:projectId",
-      //     element: <ProjectDetailsPage />,
-      //   },
-      //   {
-      //     path: "code-graph",
-      //     element: <CodeGraphPage />,
-      //   },
-      //   {
-      //     path: "code-search",
-      //     element: <CodeSearchPage />,
-      //   },
-      //   {
-      //     path: "flows",
-      //     element: <FlowsPage />,
-      //   },
-      //   {
-      //     path: "settings",
-      //     element: <SettingsPage />,
-      //   },
-      //   {
-      //     path: "*",
-      //     element: <NotFoundPage />,
-      //   },
+      {
+        path: "projects/:projectId",
+        element: <ProjectDetailsPage />,
+      },
+      {
+        path: "code-graph",
+        element: <CodeGraphPage />,
+      },
+      {
+        path: "code-search",
+        element: <CodeSearchPage />,
+      },
+      {
+        path: "flows",
+        element: <FlowsPage />,
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
+      },
     ],
   },
 ]);

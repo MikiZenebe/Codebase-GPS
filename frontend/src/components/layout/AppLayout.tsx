@@ -7,10 +7,10 @@ export function AppLayout() {
     <div className="min-h-screen bg-background">
       <Sidebar />
 
-      <div className="md:pl-64">
+      <div className="md:pl-[260px] flex flex-col min-h-screen">
         <Header />
 
-        <main className="mx-auto w-full max-w-[1600px] p-5 md:p-8">
+        <main className="flex-1 w-full p-6 md:p-8">
           <Outlet />
         </main>
       </div>

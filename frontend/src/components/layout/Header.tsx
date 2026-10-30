@@ -22,11 +22,9 @@ export function Header() {
           <Bell size={18} />
         </Button>
 
-        <Button asChild size="sm">
-          <Link to="/projects/new">
-            <Plus size={16} />
-            New project
-          </Link>
+        <Button render={<Link to="/projects/new" />} size="sm">
+          <Plus size={16} />
+          New project
         </Button>
       </div>
     </header>
