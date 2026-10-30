@@ -34,10 +34,10 @@ export default function DashboardPage() {
 
   const totalProjects = projects.length;
   const completedProjects = projects.filter(
-    (p) => p.status === "COMPLETED"
+    (p) => p.status === "COMPLETED",
   ).length;
   const processingProjects = projects.filter(
-    (p) => p.status === "PROCESSING" || p.status === "PENDING"
+    (p) => p.status === "PROCESSING" || p.status === "PENDING",
   ).length;
 
   const stats = [
@@ -48,10 +48,12 @@ export default function DashboardPage() {
         totalProjects === 0
           ? "No repositories imported"
           : totalProjects === 1
-          ? "1 repository tracked"
-          : `${totalProjects} repositories tracked${
-              processingProjects > 0 ? ` (${processingProjects} indexing)` : ""
-            }`,
+            ? "1 repository tracked"
+            : `${totalProjects} repositories tracked${
+                processingProjects > 0
+                  ? ` (${processingProjects} indexing)`
+                  : ""
+              }`,
       icon: FolderGit2,
       trend: totalProjects > 0 ? `${completedProjects} ready` : "None yet",
       trendColor: "text-emerald-500",
@@ -145,7 +147,7 @@ export default function DashboardPage() {
   const recentProjects = projects.slice(0, 4);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8 select-none">
+    <div className=" w-full  space-y-8 select-none">
       {/* ── Page Header ── */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
@@ -159,7 +161,8 @@ export default function DashboardPage() {
             </span>
           </div>
           <p className="text-[13px] text-muted-foreground sm:text-sm">
-            Overview of your indexed codebases, architecture graphs, and execution paths.
+            Overview of your indexed codebases, architecture graphs, and
+            execution paths.
           </p>
         </div>
 
@@ -270,7 +273,7 @@ export default function DashboardPage() {
                             "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
                           !isCompleted &&
                             !isProcessing &&
-                            "bg-muted text-muted-foreground border border-border"
+                            "bg-muted text-muted-foreground border border-border",
                         )}
                       >
                         {isCompleted && <CheckCircle2 size={10} />}
@@ -291,10 +294,13 @@ export default function DashboardPage() {
 
                   <CardContent className="p-4 pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
                     <span className="font-mono">
-                      {new Date(project.createdAt).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {new Date(project.createdAt).toLocaleDateString(
+                        undefined,
+                        {
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
                     </span>
 
                     <Link
@@ -334,7 +340,8 @@ export default function DashboardPage() {
                 </CardTitle>
               </div>
               <CardDescription className="text-[13px] text-muted-foreground leading-relaxed">
-                Parse source files into a semantic graph, map call hierarchies, and discover architectural insights.
+                Parse source files into a semantic graph, map call hierarchies,
+                and discover architectural insights.
               </CardDescription>
             </div>
 
@@ -382,7 +389,10 @@ export default function DashboardPage() {
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
                     >
                       {step.actionText}
-                      <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                      <ArrowRight
+                        size={12}
+                        className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      />
                     </Link>
                   </div>
                 </div>
@@ -401,7 +411,8 @@ export default function DashboardPage() {
                   Ready to map your code architecture?
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  Supports TypeScript, JavaScript, Python, Go, Rust, Java, and C/C++.
+                  Supports TypeScript, JavaScript, Python, Go, Rust, Java, and
+                  C/C++.
                 </p>
               </div>
             </div>
@@ -427,7 +438,8 @@ export default function DashboardPage() {
             Platform Capabilities
           </h2>
           <p className="text-xs text-muted-foreground">
-            Explore tools built for rapid architectural comprehension and deep code navigation.
+            Explore tools built for rapid architectural comprehension and deep
+            code navigation.
           </p>
         </div>
 
@@ -467,7 +479,10 @@ export default function DashboardPage() {
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                   >
                     {feature.cta}
-                    <ArrowUpRight size={13} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <ArrowUpRight
+                      size={13}
+                      className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    />
                   </Link>
                 </CardContent>
               </Card>
