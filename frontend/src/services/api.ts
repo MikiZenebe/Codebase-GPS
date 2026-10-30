@@ -8,7 +8,7 @@ export interface HealthResponse {
 
 const baseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
-export const codebaseApi = createApi({
+export const api = createApi({
   reducerPath: "codebaseApi",
   baseQuery: fetchBaseQuery({
     baseUrl,
@@ -21,4 +21,4 @@ export const codebaseApi = createApi({
   }),
 });
 
-export const { useGetHealthQuery } = codebaseApi;
+export const { useGetHealthQuery } = api;
