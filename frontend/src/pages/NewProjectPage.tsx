@@ -98,7 +98,7 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="w-full space-y-8">
       <Link
         to="/projects"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
