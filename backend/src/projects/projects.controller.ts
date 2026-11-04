@@ -4,18 +4,23 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service.js';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateGithubProjectDto } from './dto/create-github-project.dto.js';
+import { GithubService } from './services/github.service.js';
+import { RepositoryUploadService } from './services/repository-upload.service.js';
 
 @Controller('projects')
 export class ProjectsController {
-  repositoryUploadService: any;
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly repositoryUploadService: RepositoryUploadService,
+    private readonly githubService: GithubService,
+  ) {}
 
   // GET /api/projects
   @Get()
@@ -54,5 +59,11 @@ export class ProjectsController {
     @Body('name') name?: string,
   ) {
     return this.repositoryUploadService.uploadRepository(file, name);
+  }
+
+  // POST /api/projects/github
+  @Post('github')
+  importGithubRepository(@Body() dto: CreateGithubProjectDto) {
+    return this.githubService.importRepository(dto.repositoryUrl, dto.branch);
   }
 }

@@ -25,29 +25,41 @@ export class RepositoryUploadService {
       throw new BadRequestException('ZIP file is required');
     }
 
-    // Validate ZIP extension.
-    if (path.extname(file.originalname).toLowerCase() !== '.zip') {
-      throw new BadRequestException('Only ZIP files are allowed');
-    }
-
-    // Validate actual ZIP signature, not just MIME type.
-    if (!this.isZipFile(file.buffer)) {
+    if (
+      path.extname(file.originalname).toLowerCase() !== '.zip' ||
+      !this.isZipFile(file.buffer)
+    ) {
       throw new BadRequestException('Invalid ZIP file');
     }
 
     const name =
       projectName?.trim() || path.basename(file.originalname, '.zip');
 
-    if (!name || name.length > 100) {
-      throw new BadRequestException('Invalid project name');
+    return this.importArchive(file.buffer, name, {
+      source: 'ZIP_UPLOAD',
+    });
+  }
+
+  async importArchive(
+    buffer: Buffer,
+    projectName: string,
+    metadata: {
+      source: 'ZIP_UPLOAD' | 'GITHUB';
+      repositoryUrl?: string;
+      branch?: string;
+    },
+  ) {
+    if (!buffer || !this.isZipFile(buffer)) {
+      throw new BadRequestException('Invalid ZIP archive');
     }
 
-    // Create project record.
     const project = await this.prisma.project.create({
       data: {
-        name,
-        source: 'ZIP_UPLOAD',
-        status: 'UPLOADING',
+        name: projectName,
+        source: metadata.source,
+        status: metadata.source === 'GITHUB' ? 'IMPORTING' : 'UPLOADING',
+        repositoryUrl: metadata.repositoryUrl,
+        branch: metadata.branch,
       },
     });
 
@@ -63,13 +75,12 @@ export class RepositoryUploadService {
         recursive: true,
       });
 
-      const fileCount = await this.extractZip(file.buffer, projectPath);
+      const fileCount = await this.extractZip(buffer, projectPath);
 
       if (fileCount === 0) {
         throw new BadRequestException('Repository contains no files');
       }
 
-      // Mark repository as ready.
       const updatedProject = await this.prisma.project.update({
         where: {
           id: project.id,
@@ -82,11 +93,10 @@ export class RepositoryUploadService {
       });
 
       return {
-        message: 'Repository uploaded successfully',
+        message: 'Repository imported successfully',
         project: updatedProject,
       };
     } catch (error) {
-      // Remove partially extracted files.
       await rm(projectPath, {
         recursive: true,
         force: true,
@@ -105,9 +115,7 @@ export class RepositoryUploadService {
         throw error;
       }
 
-      throw new InternalServerErrorException(
-        'Failed to process repository ZIP file',
-      );
+      throw new InternalServerErrorException('Failed to import repository');
     }
   }
 
