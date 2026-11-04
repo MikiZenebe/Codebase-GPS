@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateGithubProjectDto } from './dto/create-github-project.dto.js';
 import { GithubService } from './services/github.service.js';
 import { RepositoryUploadService } from './services/repository-upload.service.js';
+import { ProjectQueryDto } from './dto/project-query.dto.js';
 
 @Controller('projects')
 export class ProjectsController {
@@ -24,14 +27,26 @@ export class ProjectsController {
 
   // GET /api/projects
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Query() query: ProjectQueryDto) {
+    return this.projectsService.findAll(query);
+  }
+
+  // GET /api/projects/stats
+  @Get('stats')
+  getStats() {
+    return this.projectsService.getStats();
   }
 
   // GET /api/projects/:id
   @Get(':id')
-  findOne(@Param(':id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
+  }
+
+  // DELETE /api/projects/:id
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.projectsService.remove(id);
   }
 
   // POST /api/projects/upload
