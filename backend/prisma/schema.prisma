@@ -26,6 +26,11 @@ enum ProjectStatus {
   FAILED
 }
 
+enum RepositoryFileType {
+  FILE
+  DIRECTORY
+}
+
 model Project {
   id          String        @id @default(cuid())
   name        String
@@ -40,9 +45,36 @@ model Project {
   fileCount Int     @default(0)
   language  String?
 
+  files RepositoryFile[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
+}
+
+model RepositoryFile {
+  id        String @id @default(cuid())
+  projectId String
+
+  name String
+  path String
+
+  type RepositoryFileType
+
+  extension String?
+  language  String?
+
+  size       BigInt    @default(0)
+  modifiedAt DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, path])
+  @@index([projectId])
+  @@index([projectId, type])
+  @@index([projectId, language])
 }
