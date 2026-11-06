@@ -4,6 +4,9 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -16,6 +19,12 @@ import { CreateGithubProjectDto } from './dto/create-github-project.dto.js';
 import { GithubService } from './services/github.service.js';
 import { RepositoryUploadService } from './services/repository-upload.service.js';
 import { ProjectQueryDto } from './dto/project-query.dto.js';
+import { RepositoryQueueService } from './services/repository-queue.service.js';
+import { diskStorage } from 'multer';
+import path from 'node:path';
+import { tmpdir } from 'node:os';
+import { mkdirSync } from 'node:fs';
+import { randomUUIDv7 } from 'node:crypto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -23,6 +32,7 @@ export class ProjectsController {
     private readonly projectsService: ProjectsService,
     private readonly repositoryUploadService: RepositoryUploadService,
     private readonly githubService: GithubService,
+    private readonly repositoryQueueService: RepositoryQueueService,
   ) {}
 
   // GET /api/projects
@@ -51,8 +61,24 @@ export class ProjectsController {
 
   // POST /api/projects/upload
   @Post('upload')
+  @HttpCode(HttpStatus.ACCEPTED)
   @UseInterceptors(
     FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (_req, _file, callback) => {
+          const uploadDirectory = path.join(tmpdir(), 'codebase-gps-uploads');
+
+          mkdirSync(uploadDirectory, {
+            recursive: true,
+          });
+
+          callback(null, uploadDirectory);
+        },
+
+        filename: (_req, _file, callback) => {
+          callback(null, `${randomUUIDv7()}.zip`);
+        },
+      }),
       limits: {
         fileSize: Number(process.env.MAX_UPLOAD_SIZE_MB ?? 50) * 1024 * 1024,
         files: 1,
@@ -73,12 +99,39 @@ export class ProjectsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('name') name?: string,
   ) {
-    return this.repositoryUploadService.uploadRepository(file, name);
+    if (!file) {
+      throw new BadRequestException('ZIP file is required');
+    }
+
+    const projectName =
+      name?.trim() || path.basename(file.originalname, '.zip');
+
+    if (!projectName || projectName.length > 100) {
+      throw new BadRequestException('Invalid project name');
+    }
+
+    return this.repositoryQueueService.enqueueArchive({
+      archivePath: file.path,
+      projectName,
+      source: 'ZIP_UPLOAD',
+    });
   }
 
   // POST /api/projects/github
   @Post('github')
   importGithubRepository(@Body() dto: CreateGithubProjectDto) {
     return this.githubService.importRepository(dto.repositoryUrl, dto.branch);
+  }
+
+  // GET /api/projects/:id/progress
+  @Get(':id/progress')
+  async getProgress(@Param('id') id: string) {
+    const progress = await this.repositoryQueueService.getProgress(id);
+
+    if (!progress) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return progress;
   }
 }

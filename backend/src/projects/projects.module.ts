@@ -4,10 +4,28 @@ import { ProjectsController } from './projects.controller.js';
 import { ProjectsService } from './projects.service.js';
 import { RepositoryUploadService } from './services/repository-upload.service.js';
 import { GithubService } from './services/github.service.js';
+import { BullModule } from '@nestjs/bullmq';
+import { RepositoryProcessor } from './workers/repository.processor.js';
 
 @Module({
+  imports: [
+    BullModule.registerQueue({
+      name: 'repository-processing',
+    }),
+  ],
+
   controllers: [ProjectsController],
-  providers: [ProjectsService, RepositoryUploadService, GithubService],
-  exports: [ProjectsService, RepositoryUploadService, GithubService],
+  providers: [
+    ProjectsService,
+    RepositoryUploadService,
+    GithubService,
+    RepositoryProcessor,
+  ],
+  exports: [
+    ProjectsService,
+    RepositoryUploadService,
+    GithubService,
+    RepositoryProcessor,
+  ],
 })
 export class ProjectsModule {}

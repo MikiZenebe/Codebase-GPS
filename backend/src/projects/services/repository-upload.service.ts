@@ -3,13 +3,9 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-
 import { PrismaService } from '../../prisma/prisma.service.js';
-
 import AdmZip from 'adm-zip';
-
-import { mkdir, writeFile, rm } from 'node:fs/promises';
-
+import { mkdir, writeFile, rm, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 @Injectable()
@@ -119,6 +115,83 @@ export class RepositoryUploadService {
     }
   }
 
+  async processQueuedArchive(
+    projectId: string,
+    archivePath: string,
+    onProgress?: (progress: number) => Promise<void>,
+  ) {
+    const project = await this.prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+    });
+
+    if (!project) {
+      throw new BadRequestException('Project not found');
+    }
+
+    const storageRoot = path.resolve(
+      process.cwd(),
+      process.env.REPOSITORY_STORAGE_PATH ?? './storage/repositories',
+    );
+
+    const projectPath = path.join(storageRoot, projectId);
+
+    try {
+      // Start with a clean extraction directory.
+      await rm(projectPath, {
+        recursive: true,
+        force: true,
+      });
+
+      await mkdir(projectPath, {
+        recursive: true,
+      });
+
+      // Read the temporary archive.
+      const buffer = await readFile(archivePath);
+
+      // Validate the actual ZIP signature.
+      if (!this.isZipFile(buffer)) {
+        throw new BadRequestException('Invalid ZIP archive');
+      }
+
+      // Extract using our existing secure extraction logic.
+      const fileCount = await this.extractZip(buffer, projectPath, onProgress);
+
+      if (fileCount === 0) {
+        throw new BadRequestException('Repository contains no files');
+      }
+
+      // Mark the repository as ready.
+      const updatedProject = await this.prisma.project.update({
+        where: {
+          id: projectId,
+        },
+
+        data: {
+          status: 'READY',
+          rootPath: projectPath,
+          fileCount,
+        },
+      });
+
+      return updatedProject;
+    } catch (error) {
+      // Remove incomplete extraction.
+      await rm(projectPath, {
+        recursive: true,
+        force: true,
+      });
+
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException('Repository extraction failed');
+    }
+  }
+
   private isZipFile(buffer: Buffer): boolean {
     if (buffer.length < 4) {
       return false;
@@ -133,6 +206,7 @@ export class RepositoryUploadService {
   private async extractZip(
     buffer: Buffer,
     destination: string,
+    onProgress?: (progress: number) => Promise<void>,
   ): Promise<number> {
     let zip: AdmZip;
 
@@ -151,7 +225,14 @@ export class RepositoryUploadService {
     let totalExtractedSize = 0;
     let fileCount = 0;
 
-    for (const entry of entries) {
+    for (let index = 0; index < entries.length; index++) {
+      const entry = entries[index];
+
+      if (onProgress && (index % 25 === 0 || index === entries.length - 1)) {
+        const progress = 10 + Math.floor(((index + 1) / entries.length) * 85);
+
+        await onProgress(progress);
+      }
       const entryName = entry.entryName;
 
       // Normalize Windows and Unix paths.

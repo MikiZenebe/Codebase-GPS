@@ -9,6 +9,10 @@ import {
 import { Octokit } from '@octokit/rest';
 
 import { RepositoryUploadService } from './repository-upload.service.js';
+import path from 'node:path';
+import { tmpdir } from 'node:os';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { randomUUIDv7 } from 'node:crypto';
 
 @Injectable()
 export class GithubService {
@@ -59,27 +63,36 @@ export class GithubService {
         throw error;
       }
 
-      // 4. Download the repository ZIP archive.
+      // Download repository archive.
       const response = await this.octokit.rest.repos.downloadZipballArchive({
         owner,
         repo,
         ref: branch,
       });
 
-      // 5. Convert GitHub response into a Node.js Buffer.
       const archive = Buffer.isBuffer(response.data)
         ? Buffer.from(response.data)
         : Buffer.from(response.data as unknown as ArrayBuffer);
 
-      // 6. Enforce compressed archive size limit.
       const maxSize =
         Number(process.env.MAX_UPLOAD_SIZE_MB ?? 50) * 1024 * 1024;
 
       if (archive.length > maxSize) {
         throw new BadRequestException(
-          'GitHub repository archive exceeds the 50 MB limit',
+          'GitHub repository archive exceeds the upload limit',
         );
       }
+
+      // Save archive temporarily.
+      const uploadDirectory = path.join(tmpdir(), 'codebase-gps-uploads');
+
+      await mkdir(uploadDirectory, {
+        recursive: true,
+      });
+
+      const archivePath = path.join(uploadDirectory, `${randomUUIDv7()}.zip`);
+
+      await writeFile(archivePath, archive);
 
       // 7. Reuse the existing ZIP import pipeline.
       return await this.repositoryUploadService.importArchive(
