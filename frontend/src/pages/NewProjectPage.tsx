@@ -23,6 +23,7 @@ export default function NewProjectPage() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [repositoryUrl, setRepositoryUrl] = useState("");
+
   const [activeOption, setActiveOption] = useState<"upload" | "github">(
     "upload",
   );
@@ -35,6 +36,7 @@ export default function NewProjectPage() {
 
   const [error, setError] = useState("");
 
+  // Validate selected ZIP file
   const handleFileChange = (file?: File) => {
     if (!file) return;
 
@@ -45,9 +47,15 @@ export default function NewProjectPage() {
       return;
     }
 
+    if (file.size === 0) {
+      setError("The selected ZIP file is empty.");
+      return;
+    }
+
     setSelectedFile(file);
   };
 
+  // Upload repository
   const handleUpload = async () => {
     if (!selectedFile) {
       setError("Please select a repository ZIP file.");
@@ -57,27 +65,56 @@ export default function NewProjectPage() {
     try {
       setError("");
 
-      const project = await uploadRepository({
+      const response = await uploadRepository({
         file: selectedFile,
       }).unwrap();
 
-      navigate(`/projects/${project.id}`);
-    } catch {
-      setError("Unable to upload repository. Please try again.");
+      // Backend returns { message, project, jobId, status }
+      navigate(`/projects/${response.project.id}`);
+    } catch (err) {
+      console.error("Repository upload failed:", err);
+      setError(
+        "Unable to upload repository. Please check your connection and try again.",
+      );
     }
   };
 
+  // Validate GitHub URL
+  const isValidGitHubUrl = (value: string) => {
+    try {
+      const url = new URL(value);
+
+      if (
+        url.protocol !== "https:" ||
+        url.hostname !== "github.com" ||
+        url.username ||
+        url.password
+      ) {
+        return false;
+      }
+
+      const segments = url.pathname.split("/").filter(Boolean);
+
+      return (
+        segments.length === 2 &&
+        /^[a-zA-Z0-9-]+$/.test(segments[0]) &&
+        /^[a-zA-Z0-9._-]+$/.test(segments[1].replace(/\.git$/, ""))
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  // Connect GitHub repository
   const handleGitHubConnect = async () => {
-    if (!repositoryUrl.trim()) {
+    const trimmedUrl = repositoryUrl.trim();
+
+    if (!trimmedUrl) {
       setError("Please enter a GitHub repository URL.");
       return;
     }
 
-    const validGitHubUrl = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/.test(
-      repositoryUrl.trim(),
-    );
-
-    if (!validGitHubUrl) {
+    if (!isValidGitHubUrl(trimmedUrl)) {
       setError("Enter a valid GitHub repository URL.");
       return;
     }
@@ -85,12 +122,14 @@ export default function NewProjectPage() {
     try {
       setError("");
 
-      const project = await connectGitHub({
-        repositoryUrl: repositoryUrl.trim(),
+      const response = await connectGitHub({
+        repositoryUrl: trimmedUrl,
       }).unwrap();
 
-      navigate(`/projects/${project.id}`);
-    } catch {
+      // Backend returns a queued submission response
+      navigate(`/projects/${response.project.id}`);
+    } catch (err) {
+      console.error("GitHub connection failed:", err);
       setError(
         "Unable to connect repository. Check your access and try again.",
       );
@@ -121,6 +160,7 @@ export default function NewProjectPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <button
           type="button"
+          aria-pressed={activeOption === "upload"}
           onClick={() => {
             setActiveOption("upload");
             setError("");
@@ -142,6 +182,7 @@ export default function NewProjectPage() {
 
         <button
           type="button"
+          aria-pressed={activeOption === "github"}
           onClick={() => {
             setActiveOption("github");
             setError("");
@@ -169,8 +210,8 @@ export default function NewProjectPage() {
           </CardHeader>
 
           <CardContent className="space-y-5">
-            <div
-              onClick={() => fileInputRef.current?.click()}
+            <label
+              htmlFor="repository-zip"
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
@@ -192,12 +233,16 @@ export default function NewProjectPage() {
 
               <input
                 ref={fileInputRef}
+                id="repository-zip"
                 type="file"
                 accept=".zip,application/zip"
-                className="hidden"
-                onChange={(event) => handleFileChange(event.target.files?.[0])}
+                className="sr-only"
+                disabled={loading}
+                onChange={(event) => {
+                  handleFileChange(event.target.files?.[0]);
+                }}
               />
-            </div>
+            </label>
 
             {selectedFile && (
               <div className="flex items-center justify-between rounded-lg border p-3">
@@ -213,9 +258,18 @@ export default function NewProjectPage() {
                 </div>
 
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSelectedFile(null)}
+                  disabled={loading}
+                  aria-label="Remove selected file"
+                  onClick={() => {
+                    setSelectedFile(null);
+
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = "";
+                    }
+                  }}
                 >
                   <X size={16} />
                 </Button>
@@ -223,6 +277,7 @@ export default function NewProjectPage() {
             )}
 
             <Button
+              type="button"
               className="w-full"
               disabled={!selectedFile || loading}
               onClick={handleUpload}
@@ -249,6 +304,7 @@ export default function NewProjectPage() {
                 id="github-url"
                 placeholder="https://github.com/username/repository"
                 value={repositoryUrl}
+                disabled={loading}
                 onChange={(event) => setRepositoryUrl(event.target.value)}
               />
 
@@ -259,6 +315,7 @@ export default function NewProjectPage() {
             </div>
 
             <Button
+              type="button"
               className="w-full"
               disabled={!repositoryUrl.trim() || loading}
               onClick={handleGitHubConnect}
@@ -271,7 +328,11 @@ export default function NewProjectPage() {
       )}
 
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p
+          role="alert"
+          aria-live="assertive"
+          className="text-sm text-destructive"
+        >
           {error}
         </p>
       )}

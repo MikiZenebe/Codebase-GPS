@@ -24,7 +24,7 @@ import { diskStorage } from 'multer';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { mkdirSync } from 'node:fs';
-import { randomUUIDv7 } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -76,7 +76,7 @@ export class ProjectsController {
         },
 
         filename: (_req, _file, callback) => {
-          callback(null, `${randomUUIDv7()}.zip`);
+          callback(null, `${randomUUID()}.zip`);
         },
       }),
       limits: {

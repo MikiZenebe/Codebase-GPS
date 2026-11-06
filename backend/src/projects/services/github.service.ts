@@ -12,7 +12,7 @@ import { RepositoryUploadService } from './repository-upload.service.js';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { randomUUIDv7 } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class GithubService {
@@ -90,7 +90,7 @@ export class GithubService {
         recursive: true,
       });
 
-      const archivePath = path.join(uploadDirectory, `${randomUUIDv7()}.zip`);
+      const archivePath = path.join(uploadDirectory, `${randomUUID()}.zip`);
 
       await writeFile(archivePath, archive);
 
