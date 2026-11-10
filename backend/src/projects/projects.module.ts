@@ -7,12 +7,14 @@ import { GithubService } from './services/github.service.js';
 import { RepositoryQueueService } from './services/repository-queue.service.js';
 import { BullModule } from '@nestjs/bullmq';
 import { RepositoryProcessor } from './workers/repository.processor.js';
+import { ScannerModule } from '../analysis/scanner/scanner.module.js';
 
 @Module({
   imports: [
     BullModule.registerQueue({
       name: 'repository-processing',
     }),
+    ScannerModule,
   ],
 
   controllers: [ProjectsController],

@@ -9,6 +9,7 @@ import CodeSearchPage from "../pages/CodeSearchPage";
 import FlowsPage from "../pages/FlowsPage";
 import SettingsPage from "../pages/SettingsPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import ProjectStatisticsPage from "../pages/ProjectStatisticsPage";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
       {
         path: "*",
         element: <NotFoundPage />,
+      },
+      {
+        path: "/projects/:projectId/statistics",
+        element: <ProjectStatisticsPage />,
       },
     ],
   },

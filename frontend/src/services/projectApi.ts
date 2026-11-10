@@ -8,13 +8,15 @@ import type {
   RepositorySubmissionResponse,
   PaginatedResponse,
 } from "../types/project";
+import type { RepositoryStatistics } from "../types/statistics";
 
 export const projectApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // Get all projects
     getProjects: builder.query<Project[], void>({
       query: () => "/projects",
-      transformResponse: (response: PaginatedResponse<Project>) => response.data,
+      transformResponse: (response: PaginatedResponse<Project>) =>
+        response.data,
       providesTags: [{ type: "Project", id: "LIST" }],
     }),
 
@@ -64,6 +66,17 @@ export const projectApi = api.injectEndpoints({
     getProjectProgress: builder.query<ProjectProgress, string>({
       query: (id) => `/projects/${id}/progress`,
     }),
+
+    getProjectStatistics: builder.query<RepositoryStatistics, string>({
+      query: (projectId) => `/projects/${projectId}/statistics`,
+
+      providesTags: (_result, _error, projectId) => [
+        {
+          type: "Project",
+          id: projectId,
+        },
+      ],
+    }),
   }),
 
   overrideExisting: false,
@@ -75,4 +88,5 @@ export const {
   useConnectGitHubMutation,
   useGetProjectByIdQuery,
   useGetProjectProgressQuery,
+  useGetProjectStatisticsQuery,
 } = projectApi;

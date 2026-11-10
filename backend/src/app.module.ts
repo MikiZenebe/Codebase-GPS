@@ -6,6 +6,7 @@ import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { BullModule } from '@nestjs/bullmq';
+import { AnalysisModule } from './analysis/analysis.module.js';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { BullModule } from '@nestjs/bullmq';
     HealthModule,
     PrismaModule,
     ProjectsModule,
+    AnalysisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

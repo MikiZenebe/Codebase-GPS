@@ -207,17 +207,23 @@ export default function ProjectDetailsPage() {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          <RefreshCw
-            size={16}
-            className={`mr-2 ${isFetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-5">
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              size={16}
+              className={`mr-2 ${isFetching ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+
+          <Link to={`/projects/${projectId}/statistics`}>
+            <Button>View Repository Statistics</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Processing Status */}
