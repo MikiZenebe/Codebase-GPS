@@ -223,6 +223,13 @@ export default function ProjectDetailsPage() {
           <Link to={`/projects/${projectId}/statistics`}>
             <Button>View Repository Statistics</Button>
           </Link>
+
+          <Link to={`/projects/${projectId}/code-graph`}>
+            <Button>
+              <Network className="mr-2 h-4 w-4" />
+              Explore Code Graph
+            </Button>
+          </Link>
         </div>
       </div>
 

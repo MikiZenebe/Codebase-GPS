@@ -33,10 +33,6 @@ export const router = createBrowserRouter([
         element: <ProjectDetailsPage />,
       },
       {
-        path: "code-graph",
-        element: <CodeGraphPage />,
-      },
-      {
         path: "code-search",
         element: <CodeSearchPage />,
       },
@@ -56,6 +52,7 @@ export const router = createBrowserRouter([
         path: "/projects/:projectId/statistics",
         element: <ProjectStatisticsPage />,
       },
+      { path: "/projects/:projectId/code-graph", element: <CodeGraphPage /> },
     ],
   },
 ]);

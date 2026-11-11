@@ -9,6 +9,10 @@ import type {
   PaginatedResponse,
 } from "../types/project";
 import type { RepositoryStatistics } from "../types/statistics";
+import type {
+  AnalyzeDependencyResponse,
+  DependencyResponse,
+} from "../types/dependency";
 
 export const projectApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -77,6 +81,34 @@ export const projectApi = api.injectEndpoints({
         },
       ],
     }),
+
+    getProjectDependencies: builder.query<DependencyResponse, string>({
+      query: (projectId) => `/projects/${projectId}/dependencies`,
+
+      providesTags: (_result, _error, projectId) => [
+        {
+          type: "Analysis",
+          id: projectId,
+        },
+      ],
+    }),
+
+    analyzeProjectDependencies: builder.mutation<
+      AnalyzeDependencyResponse,
+      string
+    >({
+      query: (projectId) => ({
+        url: `/projects/${projectId}/dependencies/analyze`,
+        method: "POST",
+      }),
+
+      invalidatesTags: (_result, _error, projectId) => [
+        {
+          type: "Analysis",
+          id: projectId,
+        },
+      ],
+    }),
   }),
 
   overrideExisting: false,
@@ -89,4 +121,6 @@ export const {
   useGetProjectByIdQuery,
   useGetProjectProgressQuery,
   useGetProjectStatisticsQuery,
+  useGetProjectDependenciesQuery,
+  useAnalyzeProjectDependenciesMutation,
 } = projectApi;

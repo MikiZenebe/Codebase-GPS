@@ -31,6 +31,13 @@ enum RepositoryFileType {
   DIRECTORY
 }
 
+enum DependencyKind {
+  IMPORT
+  EXPORT
+  REQUIRE
+  DYNAMIC_IMPORT
+}
+
 model Project {
   id          String        @id @default(cuid())
   name        String
@@ -45,7 +52,8 @@ model Project {
   fileCount Int     @default(0)
   language  String?
 
-  files RepositoryFile[]
+  files        RepositoryFile[]
+  dependencies RepositoryDependency[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -71,10 +79,41 @@ model RepositoryFile {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  outgoingDependencies RepositoryDependency[] @relation("DependencySource")
+
+  incomingDependencies RepositoryDependency[] @relation("DependencyTarget")
+
   createdAt DateTime @default(now())
 
   @@unique([projectId, path])
   @@index([projectId])
   @@index([projectId, type])
   @@index([projectId, language])
+}
+
+model RepositoryDependency {
+  id           String  @id @default(cuid())
+  projectId    String
+  sourceFileId String
+  targetFileId String?
+
+  specifier   String
+  kind        DependencyKind
+  isExternal  Boolean        @default(false)
+  packageName String?
+  line        Int
+
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  sourceFile RepositoryFile @relation("DependencySource", fields: [sourceFileId], references: [id], onDelete: Cascade)
+
+  targetFile RepositoryFile? @relation("DependencyTarget", fields: [targetFileId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, sourceFileId, specifier, kind, line])
+  @@index([projectId])
+  @@index([sourceFileId])
+  @@index([targetFileId])
+  @@index([projectId, isExternal])
 }
