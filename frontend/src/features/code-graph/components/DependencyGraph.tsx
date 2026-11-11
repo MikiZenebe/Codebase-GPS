@@ -24,12 +24,14 @@ interface Props {
   initialNodes: DependencyGraphNode[];
   initialEdges: Edge[];
   onSelectNode: (node: DependencyGraphNode) => void;
+  onClearSelection?: () => void;
 }
 
 export default function DependencyGraph({
   initialNodes,
   initialEdges,
   onSelectNode,
+  onClearSelection,
 }: Props) {
   const [nodes, setNodes, onNodesChange] =
     useNodesState<DependencyGraphNode>(initialNodes);
@@ -57,6 +59,7 @@ export default function DependencyGraph({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
+        onPaneClick={onClearSelection}
         fitView
         fitViewOptions={{
           padding: 0.2,

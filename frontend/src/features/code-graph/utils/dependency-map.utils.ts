@@ -5,6 +5,7 @@ import { MarkerType, type Edge, type Node } from "@xyflow/react";
 import type {
   RepositoryDependency,
   DependencyFilter,
+  DependencyKind,
   DependencyNodeCategory,
 } from "../../../types/dependency";
 
@@ -23,6 +24,7 @@ const NODE_HEIGHT = 105;
 export function buildDependencyGraph(
   dependencies: RepositoryDependency[],
   filter: DependencyFilter = "all",
+  kindFilter: DependencyKind | "ALL" = "ALL",
 ): GraphResult {
   const nodeMap = new Map<string, DependencyGraphNode>();
 
@@ -66,6 +68,10 @@ export function buildDependencyGraph(
         : "unresolved";
 
     if (filter !== "all" && filter !== category) {
+      continue;
+    }
+
+    if (kindFilter !== "ALL" && dependency.kind !== kindFilter) {
       continue;
     }
 
